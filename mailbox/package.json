@@ -1,0 +1,17 @@
+{
+  "name": "mailbox",
+  "version": "0.0.1",
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0",
+    "typescript": "^5.4.5",
+    "wrangler": "^3.57.1"
+  },
+  "private": true,
+  "scripts": {
+      "start": "wrangler dev",
+      "deploy": "wrangler publish"
+  },
+  "dependencies": {
+    "postal-mime": "^2.2.5"
+  }
+}
