@@ -122,7 +122,7 @@ app.post("/mail/forward", async (c) => {
   // @ts-ignore
   mail = JSON.parse(mail)
 
-  // forward mail with Mailchannels
+  // forward mail with Postmark
   const res = await fetch("https://api.postmarkapp.com/email", {
     method: "POST",
     headers: {
@@ -130,24 +130,11 @@ app.post("/mail/forward", async (c) => {
       "X-Postmark-Server-Token": c.env.POSTMARK_API_TOKEN,
     },
     body: JSON.stringify({
-      personalizations: [
-        {
-          to: [ { email: forward } ], // who to send the email to, add your own recipient
-          reply_to: { email: mail["from"] }, // who to reply to 
-        }
-      ],
-      from: {
-        email: "forward@cbdrik.de",
-        name: `Tempmail`,
-      },
-      subject: "Forward - " + mail["subject"],
-      reply_to: { email: mail["from"] },
-      content: [
-        {
-          type: "text/plain",
-          value: mail["content-plain"] + "\n \nForwarded by Riks Tempmail generator.",
-        },
-      ],
+      From: "Tempmail <forward@cbdrik.de>",
+      To: forward,
+      Subject: "Forward - " + mail["subject"],
+      TextBody: mail["content-plain"] + "\n \nForwarded by Riks Tempmail generator.",
+      ReplyTo: mail["from"],
     }),
   })
 
