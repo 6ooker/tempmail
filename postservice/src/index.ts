@@ -5,7 +5,6 @@ import { prettyJSON } from "hono/pretty-json"
 
 interface Env {
   TEMPMAIL_DB: KVNamespace;
-  POSTMARK_API_TOKEN: string;
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -123,26 +122,15 @@ app.post("/mail/forward", async (c) => {
   mail = JSON.parse(mail)
 
   // forward mail with Postmark
-  const res = await fetch("https://api.postmarkapp.com/email", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "X-Postmark-Server-Token": c.env.POSTMARK_API_TOKEN,
-    },
-    body: JSON.stringify({
-      From: "Tempmail <forward@cbdrik.de>",
-      To: forward,
-      Subject: "Forward - " + mail["subject"],
-      TextBody: mail["content-plain"] + "\n \nForwarded by Riks Tempmail generator.",
-      ReplyTo: mail["from"],
-    }),
-  })
 
-  return c.json({
-    "status": "ok",
-    "code": 200,
-    "msg": "Mail forwarded"
-  })
+  const res = await c.env.FORWARDER.forwardmail(mail, forward)
+  return c.json(res)
+
+//  return c.json({
+//    "status": "ok",
+//    "code": 200,
+//    "msg": "Mail forwarded"
+//  })
 })
 
 // --------------------

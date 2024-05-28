@@ -1,0 +1,7 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "tempmail-forwarder"
+main = "src/index.ts"
+compatibility_date = "2024-05-24"
+compatibility_flags = ["nodejs_compat"]
+[vars]
+RESEND_API_TOKEN = ""
