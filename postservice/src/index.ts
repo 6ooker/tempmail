@@ -5,11 +5,11 @@ import { prettyJSON } from "hono/pretty-json"
 
 interface Env {
   TEMPMAIL_DB: KVNamespace;
-  DKIM_PRIVATE_KEY: string;
+  POSTMARK_API_TOKEN: string;
 }
 
 const app = new Hono<{ Bindings: Env }>()
-const domain = "cbdrik.de"
+const domain = "tempmail.cbdrik.de"
 
 // CHANGE CORS ORIGIN LATER
 app.use("*", prettyJSON(), cors({
@@ -89,7 +89,8 @@ app.get("/mail/delete", async (c) => {
 })
 
 app.post("/mail/forward", async (c) => {
-  // forward mail with Mailchannels via Cloudflare Workers
+  // forward mail with Postmark via Cloudflare Workers
+  // see -> https://developers.cloudflare.com/workers/tutorials/send-emails-with-postmark/
 
   // get mail key and forward address
   const data = await c.req.json()
@@ -122,19 +123,17 @@ app.post("/mail/forward", async (c) => {
   mail = JSON.parse(mail)
 
   // forward mail with Mailchannels
-  const res = await fetch("https://api.mailchannels.net/tx/v1/send", {
+  const res = await fetch("https://api.postmarkapp.com/email", {
     method: "POST",
     headers: {
       "content-type": "application/json",
+      "X-Postmark-Server-Token": c.env.POSTMARK_API_TOKEN,
     },
     body: JSON.stringify({
       personalizations: [
         {
           to: [ { email: forward } ], // who to send the email to, add your own recipient
           reply_to: { email: mail["from"] }, // who to reply to 
-          dkim_domain: "cbdrik.de",
-          dkim_selector: "mailchannels", // [selector]._domainkey.yourdomain.com
-          dkim_private_key: c.env.DKIM_PRIVATE_KEY,
         }
       ],
       from: {
