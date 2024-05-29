@@ -5,6 +5,7 @@ import { prettyJSON } from "hono/pretty-json"
 
 interface Env {
   TEMPMAIL_DB: KVNamespace;
+  DKIM_PRIVATE_KEY: string;
 }
 
 const app = new Hono<{ Bindings: Env }>()
@@ -121,16 +122,41 @@ app.post("/mail/forward", async (c) => {
   // @ts-ignore
   mail = JSON.parse(mail)
 
-  // forward mail with Postmark
+  const res = await fetch("https://api.mailchannels.net/tx/v1/send", {
+		method: "POST",
+		headers: {
+			"content-type": "application/json",
+		},
+		body: JSON.stringify({
+			personalizations: [
+				{
+					to: [ { email: forward }], // who to send the email to, add your own recipient
+					reply_to: { email: mail["from"] }, // who to reply to
+					dkim_domain: "justatemp.com",
+					dkim_selector: "mailchannels", // [selector]._domainkey.yourdomain.com
+					dkim_private_key: c.env.DKIM_PRIVATE_KEY,
+				}
+			],
+			from: {
+				email: "forward@cbdrik.de",
+				name: `Just A Temp`,
+			},
+			subject: "📮 Forward – " + mail["subject"],
+			reply_to: { email: mail["from"] },
+			content: [
+				{
+					type: "text/plain",
+					value: mail["content-plain"] + "\n \nForwarded by Riks Tempmail Service.",
+				},
+			],
+		}),
+	})
 
-  const res = await c.env.FORWARDER.forwardmail(mail, forward)
-  return c.json(res)
-
-//  return c.json({
-//    "status": "ok",
-//    "code": 200,
-//    "msg": "Mail forwarded"
-//  })
+  return c.json({
+    "status": "ok",
+    "code": 200,
+    "msg": "Mail forwarded"
+  })
 })
 
 // --------------------

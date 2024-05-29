@@ -4,6 +4,3 @@ compatibility_date = "2024-05-27"
 kv_namespaces = [
   { binding = "TEMPMAIL_DB", id = "76efdd73c2e64a1fa5d54c8b51ef26eb" }
 ]
-services = [
-  { binding = "FORWARDER", service = "tempmail-forwarder" }
-]
